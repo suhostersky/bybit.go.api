@@ -3,12 +3,9 @@ package main
 import (
 	"context"
 	"fmt"
-	bybit "github.com/bybit-exchange/bybit.go.api"
-)
 
-func main() {
-	GetFundingRate()
-}
+	bybit "github.com/suhostersky/bybit.go.api"
+)
 
 func GetFundingRate() {
 	client := bybit.NewBybitHttpClient("", "", bybit.WithBaseURL(bybit.TESTNET))

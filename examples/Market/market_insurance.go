@@ -3,12 +3,9 @@ package main
 import (
 	"context"
 	"fmt"
-	bybit "github.com/bybit-exchange/bybit.go.api"
-)
 
-func main() {
-	GetMarketInsurance()
-}
+	bybit "github.com/suhostersky/bybit.go.api"
+)
 
 func GetMarketInsurance() {
 	client := bybit.NewBybitHttpClient("", "", bybit.WithBaseURL(bybit.TESTNET), bybit.WithDebug(true))

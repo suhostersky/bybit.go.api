@@ -3,12 +3,10 @@ package main
 import (
 	"context"
 	"fmt"
-	bybit "github.com/bybit-exchange/bybit.go.api"
+
+	bybit "github.com/suhostersky/bybit.go.api"
 )
 
-func main() {
-	PlaceOrderMap()
-}
 func PlaceOrderMap() {
 	client := bybit.NewBybitHttpClient("xxxx", "xxx", bybit.WithBaseURL(bybit.TESTNET))
 	params := map[string]interface{}{
