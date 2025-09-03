@@ -42,8 +42,8 @@ func (b *WebSocket) monitorConnection() {
 		<-ticker.C
 		if !b.isConnected && b.ctx.Err() == nil { // Check if disconnected and context not done
 			log.Println("Attempting to reconnect...")
-			con := b.Connect() // Example, adjust parameters as needed
-			if con == nil {
+			err := b.Connect() // Example, adjust parameters as needed
+			if err != nil {
 				log.Println("Reconnection failed:")
 			} else {
 				b.isConnected = true
@@ -118,18 +118,20 @@ func NewBybitPublicWebSocket(url string, handler MessageHandler) *WebSocket {
 	return c
 }
 
-func (b *WebSocket) Connect() *WebSocket {
+func (b *WebSocket) Connect() error {
 	var err error
 	wssUrl := b.url
 	if b.maxAliveTime != "" {
 		wssUrl += "?max_alive_time=" + b.maxAliveTime
 	}
 	b.conn, _, err = websocket.DefaultDialer.Dial(wssUrl, nil)
+	if err != nil {
+		return err
+	}
 
 	if b.requiresAuthentication() {
 		if err = b.sendAuth(); err != nil {
-			log.Println("Failed Connection:", fmt.Sprintf("%v", err))
-			return nil
+			return err
 		}
 	}
 	b.isConnected = true
@@ -140,7 +142,7 @@ func (b *WebSocket) Connect() *WebSocket {
 	b.ctx, b.cancel = context.WithCancel(context.Background())
 	go ping(b)
 
-	return b
+	return nil
 }
 
 func (b *WebSocket) SendSubscription(args []string) (*WebSocket, error) {
@@ -171,7 +173,6 @@ func (b *WebSocket) SendRequest(op string, args map[string]interface{}, headers 
 		"args":   []interface{}{args},
 	}
 	if err := b.sendAsJson(request); err != nil {
-		fmt.Println("Failed to send websocket trade request:", err)
 		return b, err
 	}
 	return b, nil
@@ -179,7 +180,6 @@ func (b *WebSocket) SendRequest(op string, args map[string]interface{}, headers 
 
 func (b *WebSocket) SendTradeRequest(tradeTruest map[string]interface{}) (*WebSocket, error) {
 	if err := b.sendAsJson(tradeTruest); err != nil {
-		fmt.Println("Failed to send websocket trade request:", err)
 		return b, err
 	}
 	return b, nil
@@ -187,7 +187,7 @@ func (b *WebSocket) SendTradeRequest(tradeTruest map[string]interface{}) (*WebSo
 
 func ping(b *WebSocket) {
 	if b.pingInterval <= 0 {
-		fmt.Println("Ping interval is set to a non-positive value.")
+		log.Println("Ping interval is set to a non-positive value.")
 		return
 	}
 
