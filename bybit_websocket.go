@@ -6,6 +6,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/google/uuid"
@@ -18,7 +19,7 @@ func (b *WebSocket) handleIncomingMessages() {
 	for {
 		_, message, err := b.conn.ReadMessage()
 		if err != nil {
-			fmt.Println("Error reading:", err)
+			log.Println("Error reading:", err)
 			b.isConnected = false
 			return
 		}
@@ -26,7 +27,7 @@ func (b *WebSocket) handleIncomingMessages() {
 		if b.onMessage != nil {
 			err := b.onMessage(string(message))
 			if err != nil {
-				fmt.Println("Error handling message:", err)
+				log.Println("Error handling message:", err)
 				return
 			}
 		}
@@ -40,10 +41,10 @@ func (b *WebSocket) monitorConnection() {
 	for {
 		<-ticker.C
 		if !b.isConnected && b.ctx.Err() == nil { // Check if disconnected and context not done
-			fmt.Println("Attempting to reconnect...")
+			log.Println("Attempting to reconnect...")
 			con := b.Connect() // Example, adjust parameters as needed
 			if con == nil {
-				fmt.Println("Reconnection failed:")
+				log.Println("Reconnection failed:")
 			} else {
 				b.isConnected = true
 				go b.handleIncomingMessages() // Restart message handling
@@ -127,7 +128,7 @@ func (b *WebSocket) Connect() *WebSocket {
 
 	if b.requiresAuthentication() {
 		if err = b.sendAuth(); err != nil {
-			fmt.Println("Failed Connection:", fmt.Sprintf("%v", err))
+			log.Println("Failed Connection:", fmt.Sprintf("%v", err))
 			return nil
 		}
 	}
@@ -213,17 +214,15 @@ func ping(b *WebSocket) {
 			}
 			jsonPingMessage, err := json.Marshal(pingMessage)
 			if err != nil {
-				fmt.Println("Failed to marshal ping message:", err)
+				log.Println("Failed to marshal ping message:", err)
 				continue
 			}
 			if err := b.conn.WriteMessage(websocket.TextMessage, jsonPingMessage); err != nil {
-				fmt.Println("Failed to send ping:", err)
+				log.Println("Failed to send ping:", err)
 				return
 			}
-			fmt.Println("Ping sent with UTC time:", currentTime)
-
 		case <-b.ctx.Done():
-			fmt.Println("Ping context closed, stopping ping.")
+			log.Println("Ping context closed, stopping ping.")
 			return
 		}
 	}
